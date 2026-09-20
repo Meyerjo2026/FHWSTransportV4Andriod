@@ -144,25 +144,34 @@ class AdminController extends Controller
 
     /**
      * Replace a staff member's group coverage, returning the assigned
-     * values (type-labelled) after the sync.
+     * values (type-labelled) after the sync. There is exactly one row per
+     * (type, value) group — assigning a group to this staff member takes
+     * ownership away from whoever held it before, and un-checked groups
+     * this staff owned are freed (become unassigned).
      */
     private function syncStaffCoverage(User $staff, array $valuesByType): array
     {
-        GroupAssignment::where('staff_id', $staff->id)->delete();
-
         $assigned = [];
+
         foreach ($valuesByType as $type => $values) {
+            $kept = [];
+
             foreach ($values as $value) {
                 if (! $value) {
                     continue;
                 }
-                GroupAssignment::create([
-                    'staff_id' => $staff->id,
-                    'type' => $type,
-                    'value' => $value,
-                ]);
+                $kept[] = $value;
+                $row = GroupAssignment::firstOrNew(['type' => $type, 'value' => $value]);
+                $row->staff_id = $staff->id;
+                $row->save();
                 $assigned[] = "{$value} ({$type})";
             }
+
+            // Free groups this staff owned that were un-checked.
+            GroupAssignment::where('type', $type)
+                ->where('staff_id', $staff->id)
+                ->whereNotIn('value', $kept)
+                ->delete();
         }
 
         return $assigned;
