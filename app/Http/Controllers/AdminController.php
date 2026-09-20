@@ -63,6 +63,7 @@ class AdminController extends Controller
             return [
                 'type' => $type,
                 'label' => self::ASSIGNMENT_TYPES[$type]['label'],
+                'interactive' => $type === 'year',
                 'assignments' => collect($options)->mapWithKeys(fn ($value) => [$value => $existing->get($value)]),
             ];
         });
@@ -74,6 +75,7 @@ class AdminController extends Controller
             'staffList' => $staffList,
             'qualifications' => TransportOptions::allQualifications(),
             'years' => TransportOptions::YEAR_OPTIONS,
+            'departments' => TransportOptions::departments(),
         ]);
     }
 
@@ -84,7 +86,10 @@ class AdminController extends Controller
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'qualifications' => ['nullable', 'array'],
             'qualifications.*' => ['string', 'in:'.implode(',', TransportOptions::allQualifications())],
-            'year' => ['nullable', 'string', 'in:'.implode(',', TransportOptions::YEAR_OPTIONS)],
+            'years' => ['nullable', 'array'],
+            'years.*' => ['string', 'in:'.implode(',', TransportOptions::YEAR_OPTIONS)],
+            'departments' => ['nullable', 'array'],
+            'departments.*' => ['string', 'in:'.implode(',', TransportOptions::departments())],
         ]);
 
         $tempPassword = StaffController::generateTempPassword();
@@ -98,17 +103,11 @@ class AdminController extends Controller
             'active' => true,
         ]);
 
-        $assigned = [];
-        foreach (array_merge((array) ($data['qualifications'] ?? []), [($data['year'] ?? null)]) as $value) {
-            if (! $value) {
-                continue;
-            }
-            GroupAssignment::updateOrCreate(
-                ['type' => str_contains($value, 'Year ') ? 'year' : 'qualification', 'value' => $value],
-                ['staff_id' => $staff->id]
-            );
-            $assigned[] = $value;
-        }
+        $assigned = $this->syncStaffCoverage($staff, [
+            'qualification' => (array) ($data['qualifications'] ?? []),
+            'year' => (array) ($data['years'] ?? []),
+            'department' => (array) ($data['departments'] ?? []),
+        ]);
 
         $message = "Created staff member {$data['name']} ({$data['email']}).";
         if ($assigned) {
@@ -117,6 +116,56 @@ class AdminController extends Controller
         $message .= " Temporary password: {$tempPassword} — the staff member must change it on first login.";
 
         return back()->with('success', $message);
+    }
+
+    public function updateStaff(Request $request, User $staff)
+    {
+        abort_if(! $staff->isStaff(), 404);
+
+        $data = $request->validate([
+            'qualifications' => ['nullable', 'array'],
+            'qualifications.*' => ['string', 'in:'.implode(',', TransportOptions::allQualifications())],
+            'years' => ['nullable', 'array'],
+            'years.*' => ['string', 'in:'.implode(',', TransportOptions::YEAR_OPTIONS)],
+            'departments' => ['nullable', 'array'],
+            'departments.*' => ['string', 'in:'.implode(',', TransportOptions::departments())],
+        ]);
+
+        $assigned = $this->syncStaffCoverage($staff, [
+            'qualification' => (array) ($data['qualifications'] ?? []),
+            'year' => (array) ($data['years'] ?? []),
+            'department' => (array) ($data['departments'] ?? []),
+        ]);
+
+        $covered = $assigned ? 'Now responsible for: '.implode(', ', $assigned).'.' : 'No longer assigned to any trip group — will see unmatched requests only.';
+
+        return back()->with('success', "Updated responsibility for {$staff->name}. {$covered}");
+    }
+
+    /**
+     * Replace a staff member's group coverage, returning the assigned
+     * values (type-labelled) after the sync.
+     */
+    private function syncStaffCoverage(User $staff, array $valuesByType): array
+    {
+        GroupAssignment::where('staff_id', $staff->id)->delete();
+
+        $assigned = [];
+        foreach ($valuesByType as $type => $values) {
+            foreach ($values as $value) {
+                if (! $value) {
+                    continue;
+                }
+                GroupAssignment::create([
+                    'staff_id' => $staff->id,
+                    'type' => $type,
+                    'value' => $value,
+                ]);
+                $assigned[] = "{$value} ({$type})";
+            }
+        }
+
+        return $assigned;
     }
 
     public function resetStaffPassword(Request $request, User $staff)

@@ -115,6 +115,13 @@ input[type=file]{padding:8px;}
 .chip:hover{border-color:var(--primary);}
 .chip input{accent-color:var(--primary);}
 .chip:has(input:checked){background:var(--primary-tint);border-color:var(--primary);color:var(--primary);font-weight:600;}
+details.responsibility>summary{list-style:none;} details.responsibility>summary::-webkit-details-marker{display:none;}
+.responsibility-popover{
+  position:absolute;left:0;top:calc(100% + 6px);z-index:30;min-width:420px;max-width:560px;max-height:60vh;overflow:auto;
+  background:#fff;border:1px solid rgba(0,0,0,.12);border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.18);padding:16px;
+}
+.responsibility-popover .field{margin:0 0 12px;}
+.responsibility-popover .field label{font-weight:700;font-size:12px;margin-bottom:8px;display:block;}
 
 /* ── Tables ──────────────────────────────────────────────── */
 table{width:100%;border-collapse:collapse;font-size:13px;}

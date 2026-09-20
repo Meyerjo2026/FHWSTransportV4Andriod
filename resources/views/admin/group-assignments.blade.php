@@ -1,6 +1,8 @@
 @php
 $tabs = ['/admin/dashboard' => 'Dashboard', '/admin' => 'Consolidate Trips', '/admin/review' => 'Approve / Reject', '/admin/journeys' => 'AI Trip Planner', '/admin/finalise' => 'Finalise Trips', '/admin/quotes' => 'Create RFQ', '/admin/bulk-trips' => 'Bulk Upload Trips', '/admin/sites' => 'Clinical Sites', '/admin/map' => 'Map', '/admin/group-assignments' => 'Staff Assignments'];
 $oldQuals = old('qualifications', []);
+$oldYears = old('years', []);
+$oldDepts = old('departments', []);
 @endphp
 <x-shell :user="$user" :active="'/admin/group-assignments'" :tabs="$tabs">
     <div class="stat-tiles" style="margin-bottom:20px;">
@@ -21,7 +23,7 @@ $oldQuals = old('qualifications', []);
         </div>
     </div>
 
-    <div class="card" style="max-width:720px;">
+    <div class="card" style="max-width:760px;">
         <h2>Create a staff member</h2>
         @if ($errors->any())
             <div class="msg error">{{ $errors->first() }}</div>
@@ -49,19 +51,30 @@ $oldQuals = old('qualifications', []);
                     @endforeach
                 </div>
             </div>
-            <div class="grid">
-                <div class="field">
-                    <label>Responsible for year <span class="muted">(optional)</span></label>
-                    <select name="year">
-                        <option value="">— None —</option>
-                        @foreach ($years as $year)
-                            <option value="{{ $year }}" @selected(old('year') === $year)>{{ $year }}</option>
-                        @endforeach
-                    </select>
+            <div class="field">
+                <label>Responsible for year(s) <span class="muted">(optional, select all that apply)</span></label>
+                <div class="chip-grid">
+                    @foreach ($years as $year)
+                        <label class="chip">
+                            <input type="checkbox" name="years[]" value="{{ $year }}" @checked(in_array($year, $oldYears))>
+                            {{ $year }}
+                        </label>
+                    @endforeach
+                </div>
+            </div>
+            <div class="field">
+                <label>Responsible for department(s) <span class="muted">(optional, select all that apply)</span></label>
+                <div class="chip-grid">
+                    @foreach ($departments as $dept)
+                        <label class="chip">
+                            <input type="checkbox" name="departments[]" value="{{ $dept }}" @checked(in_array($dept, $oldDepts))>
+                            {{ $dept }}
+                        </label>
+                    @endforeach
                 </div>
             </div>
             <button class="btn" type="submit">Create staff member</button>
-            <p class="hint" style="margin-top:10px;">A temporary password is generated and shown after saving — the new staff member is asked to change it on first login. Assignments can be adjusted any time in the sections below.</p>
+            <p class="hint" style="margin-top:10px;">A temporary password is generated and shown after saving — the new staff member is asked to change it on first login. Responsibility can be adjusted any time via "Edit responsibility" in the staff list below.</p>
         </form>
     </div>
 
@@ -71,9 +84,14 @@ $oldQuals = old('qualifications', []);
             <div class="empty">No staff members yet. Use the form above to add the first one.</div>
         @else
             <table>
-                <thead><tr><th>Name</th><th>Email</th><th>Responsible for</th><th>Status</th><th style="width:230px;">Actions</th></tr></thead>
+                <thead><tr><th>Name</th><th>Email</th><th>Responsible for</th><th>Status</th><th style="width:290px;">Actions</th></tr></thead>
                 <tbody>
                     @foreach ($staffList as $entry)
+                        @php
+                            $selQuals = $entry['assignments']->where('type', 'qualification')->pluck('value')->all();
+                            $selYears = $entry['assignments']->where('type', 'year')->pluck('value')->all();
+                            $selDepts = $entry['assignments']->where('type', 'department')->pluck('value')->all();
+                        @endphp
                         <tr @if (!$entry['staff']->active) style="opacity:.55;" @endif>
                             <td>{{ $entry['staff']->name }}</td>
                             <td class="muted">{{ $entry['staff']->email }}</td>
@@ -95,6 +113,46 @@ $oldQuals = old('qualifications', []);
                             </td>
                             <td>
                                 <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                                    <details style="position:relative;">
+                                        <summary class="btn small secondary" style="cursor:pointer;">Edit responsibility</summary>
+                                        <form method="POST" action="/admin/staff/{{ $entry['staff']->id }}/update" class="responsibility-popover">
+                                            @csrf
+                                            <div class="field">
+                                                <label>Qualifications</label>
+                                                <div class="chip-grid">
+                                                    @foreach ($qualifications as $qual)
+                                                        <label class="chip">
+                                                            <input type="checkbox" name="qualifications[]" value="{{ $qual }}" @checked(in_array($qual, $selQuals))>
+                                                            {{ $qual }}
+                                                        </label>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                            <div class="field">
+                                                <label>Years</label>
+                                                <div class="chip-grid">
+                                                    @foreach ($years as $year)
+                                                        <label class="chip">
+                                                            <input type="checkbox" name="years[]" value="{{ $year }}" @checked(in_array($year, $selYears))>
+                                                            {{ $year }}
+                                                        </label>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                            <div class="field">
+                                                <label>Departments</label>
+                                                <div class="chip-grid">
+                                                    @foreach ($departments as $dept)
+                                                        <label class="chip">
+                                                            <input type="checkbox" name="departments[]" value="{{ $dept }}" @checked(in_array($dept, $selDepts))>
+                                                            {{ $dept }}
+                                                        </label>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                            <button class="btn small" type="submit">Save responsibility</button>
+                                        </form>
+                                    </details>
                                     <form method="POST" action="/admin/staff/{{ $entry['staff']->id }}/reset-password">
                                         @csrf
                                         <button class="btn small" type="submit">Reset password</button>
@@ -126,28 +184,30 @@ $oldQuals = old('qualifications', []);
             <h2>{{ $section['label'] }} staff assignments</h2>
             @if ($loop->first)
                 <p class="hint">
-                    A staff member assigned to a year group, department, or qualification will only see trip requests matching one of their assignments when reviewing/approving (plus any requests missing that field entirely, since those can't be attributed). Admins always see every request regardless of assignment.
+                    Department and qualification groups are <strong>static</strong> — coverage is set per staff member via "Edit responsibility" in the staff list above. Year groups can be assigned either way. A staff member sees trip requests matching one of their assignments when reviewing/approving (plus any requests missing that field, since those can't be attributed). Admins always see every request.
                 </p>
             @endif
             <table>
-                <thead><tr><th>{{ $section['label'] }}</th><th>Responsible staff member</th><th></th></tr></thead>
+                <thead><tr><th>{{ $section['label'] }}</th><th>Responsible staff member</th>@if ($section['interactive'])<th></th>@endif</tr></thead>
                 <tbody>
                     @forelse ($section['assignments'] as $value => $assignment)
                         <tr>
                             <td>{{ $value }}</td>
                             <td class="muted">{{ $assignment?->staff?->name ?? 'Unassigned' }}</td>
-                            <td>
-                                <form method="POST" action="/admin/group-assignments/{{ $section['type'] }}/{{ rawurlencode($value) }}" style="display:flex;gap:8px;align-items:center;">
-                                    @csrf
-                                    <select name="staff_id">
-                                        <option value="">— Unassigned —</option>
-                                        @foreach ($staffMembers as $staff)
-                                            <option value="{{ $staff->id }}" @selected($assignment?->staff_id === $staff->id)>{{ $staff->name }} ({{ $staff->email }})</option>
-                                        @endforeach
-                                    </select>
-                                    <button class="btn small" type="submit">Save</button>
-                                </form>
-                            </td>
+                            @if ($section['interactive'])
+                                <td>
+                                    <form method="POST" action="/admin/group-assignments/{{ $section['type'] }}/{{ rawurlencode($value) }}" style="display:flex;gap:8px;align-items:center;">
+                                        @csrf
+                                        <select name="staff_id">
+                                            <option value="">— Unassigned —</option>
+                                            @foreach ($staffMembers as $staff)
+                                                <option value="{{ $staff->id }}" @selected($assignment?->staff_id === $staff->id)>{{ $staff->name }} ({{ $staff->email }})</option>
+                                            @endforeach
+                                        </select>
+                                        <button class="btn small" type="submit">Save</button>
+                                    </form>
+                                </td>
+                            @endif
                         </tr>
                     @empty
                         <tr><td colspan="3" class="muted">No options defined.</td></tr>

@@ -79,6 +79,7 @@ Route::get('/group-assignments', [AdminController::class, 'groupAssignments']);
         Route::post('/group-assignments', [AdminController::class, 'storeStaff']);
         Route::post('/staff/{staff}/reset-password', [AdminController::class, 'resetStaffPassword']);
         Route::post('/staff/{staff}/toggle', [AdminController::class, 'toggleStaff']);
+        Route::post('/staff/{staff}/update', [AdminController::class, 'updateStaff']);
         Route::delete('/staff/{staff}', [AdminController::class, 'destroyStaff']);
     Route::post('/group-assignments/{type}/{value}', [AdminController::class, 'updateGroupAssignment'])->where('value', '.*');
     Route::get('/sites', [AdminController::class, 'sites']);
