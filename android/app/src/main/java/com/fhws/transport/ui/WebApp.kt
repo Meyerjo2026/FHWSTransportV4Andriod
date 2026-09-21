@@ -71,6 +71,20 @@ fun FhwsWebView(
 
                     override fun onPageFinished(view: WebView, url: String) {
                         state.value = state.value.copy(loading = false, progress = 100)
+                        // Autoscale: if a page is still wider than the screen,
+                        // shrink it so it fits instead of forcing sideways pan.
+                        view.evaluateJavascript(
+                            """
+                            (function(){
+                              var w = window.innerWidth;
+                              if (w > 0 && document.documentElement.scrollWidth > w + 1) {
+                                document.body.style.zoom = (w / document.documentElement.scrollWidth);
+                                document.body.style.overflowX = 'hidden';
+                              }
+                            })();
+                            """.trimIndent(),
+                            null,
+                        )
                     }
 
                     override fun onReceivedError(
