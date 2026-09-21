@@ -62,7 +62,7 @@ of the **Build Android APK** workflow) and uploads three artifacts:
 | `ANDROID_SIGNING_KEYSTORE_BASE64` | base64 of `fhws-release.jks` |
 | `ANDROID_SIGNING_KEY_ALIAS` | `fhws` |
 | `ANDROID_SIGNING_STORE_PASSWORD` | store password |
-| `ANDROID_SIGNING_KEY_PASSWORD` | key password |
+| `ANDROID_SIGNING_KEY_PASSWORD` | key password (PKCS12: identical to store password) |
 
 The keystore itself (PKCS12), passwords and the base64 are backed up in
 `~/Desktop/FHWSTransport-signing/` (mode 600). **Keep that folder safe** — an
