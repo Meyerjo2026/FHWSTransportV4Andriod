@@ -4,44 +4,40 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+    <!-- white badge tile -->
+    <path
+        android:pathData="M43,22 h22 a21,21 0 0 1 21,21 v22 a21,21 0 0 1 -21,21 h-22 a21,21 0 0 1 -21,-21 v-22 a21,21 0 0 1 21,-21 z"
+        android:fillColor="#ffffff" />
     <!-- route line -->
     <path
-        android:pathData="M24,80 L84,80"
-        android:strokeColor="#ffffff"
+        android:pathData="M36,80 L72,80"
+        android:strokeColor="#993399"
         android:strokeWidth="5"
         android:strokeLineCap="round" />
     <!-- bus body -->
     <path
-        android:pathData="M31,44 h34 a9,9 0 0 1 9,9 v9 a9,9 0 0 1 -9,9 h-34 a9,9 0 0 1 -9,-9 v-9 a9,9 0 0 1 9,-9 z"
-        android:fillColor="#ffffff" />
-    <!-- windshield -->
+        android:pathData="M36,42 h36 a8,8 0 0 1 8,8 v12 a8,8 0 0 1 -8,8 h-36 a8,8 0 0 1 -8,-8 v-12 a8,8 0 0 1 8,-8 z"
+        android:fillColor="#993399" />
+    <!-- left window -->
     <path
-        android:pathData="M40,48 h22 a2,2 0 0 1 2,2 v2 a2,2 0 0 1 -2,2 h-22 a2,2 0 0 1 -2,-2 v-2 a2,2 0 0 1 2,-2 z"
-        android:fillColor="#7A2A7A" />
+        android:pathData="M33,48 h10 a2,2 0 0 1 2,2 v9 a2,2 0 0 1 -2,2 h-10 a2,2 0 0 1 -2,-2 v-9 a2,2 0 0 1 2,-2 z"
+        android:fillColor="#ffffff" />
+    <!-- right window -->
+    <path
+        android:pathData="M65,48 h10 a2,2 0 0 1 2,2 v9 a2,2 0 0 1 -2,2 h-10 a2,2 0 0 1 -2,-2 v-9 a2,2 0 0 1 2,-2 z"
+        android:fillColor="#ffffff" />
     <!-- wheels -->
     <path
-        android:pathData="M34,68 m-5,0 a5,5 0 1 0 10,0 a5,5 0 1 0 -10,0"
-        android:fillColor="#4B1657" />
+        android:pathData="M38,70 m-4.5,0 a4.5,4.5 0 1 0 9,0 a4.5,4.5 0 1 0 -9,0"
+        android:fillColor="#5B1E5E" />
     <path
-        android:pathData="M70,68 m-5,0 a5,5 0 1 0 10,0 a5,5 0 1 0 -10,0"
-        android:fillColor="#4B1657" />
-    <!-- route stops -->
-    <path
-        android:pathData="M36,80 m-5,0 a5,5 0 1 0 10,0 a5,5 0 1 0 -10,0"
-        android:fillColor="#ffffff" />
-    <path
-        android:pathData="M36,80 m-2.2,0 a2.2,2.2 0 1 0 4.4,0 a2.2,2.2 0 1 0 -4.4,0"
-        android:fillColor="#993399" />
-    <path
-        android:pathData="M54,80 m-5,0 a5,5 0 1 0 10,0 a5,5 0 1 0 -10,0"
-        android:fillColor="#ffffff" />
-    <path
-        android:pathData="M54,80 m-2.2,0 a2.2,2.2 0 1 0 4.4,0 a2.2,2.2 0 1 0 -4.4,0"
-        android:fillColor="#993399" />
-    <path
-        android:pathData="M72,80 m-5,0 a5,5 0 1 0 10,0 a5,5 0 1 0 -10,0"
-        android:fillColor="#ffffff" />
-    <path
-        android:pathData="M72,80 m-2.2,0 a2.2,2.2 0 1 0 4.4,0 a2.2,2.2 0 1 0 -4.4,0"
-        android:fillColor="#993399" />
+        android:pathData="M70,70 m-4.5,0 a4.5,4.5 0 1 0 9,0 a4.5,4.5 0 1 0 -9,0"
+        android:fillColor="#5B1E5E" />
+    <!-- route stops (white ring + purple dot) -->
+    <path android:pathData="M44,80 m-5,0 a5,5 0 1 0 10,0 a5,5 0 1 0 -10,0" android:fillColor="#ffffff" />
+    <path android:pathData="M44,80 m-2.6,0 a2.6,2.6 0 1 0 5.2,0 a2.6,2.6 0 1 0 -5.2,0" android:fillColor="#993399" />
+    <path android:pathData="M54,80 m-5,0 a5,5 0 1 0 10,0 a5,5 0 1 0 -10,0" android:fillColor="#ffffff" />
+    <path android:pathData="M54,80 m-2.6,0 a2.6,2.6 0 1 0 5.2,0 a2.6,2.6 0 1 0 -5.2,0" android:fillColor="#993399" />
+    <path android:pathData="M64,80 m-5,0 a5,5 0 1 0 10,0 a5,5 0 1 0 -10,0" android:fillColor="#ffffff" />
+    <path android:pathData="M64,80 m-2.6,0 a2.6,2.6 0 1 0 5.2,0 a2.6,2.6 0 1 0 -5.2,0" android:fillColor="#993399" />
 </vector>
