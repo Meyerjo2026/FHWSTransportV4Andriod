@@ -45,6 +45,39 @@ cd android
 ./gradlew :app:bundleRelease      # -> signed AAB for Play Store (needs signing config)
 ```
 
+## Releasing
+
+The app is signed with a release keystore that lives only as GitHub Actions
+secrets (never in the repo). CI builds on every `android/` push (or manual run
+of the **Build Android APK** workflow) and uploads three artifacts:
+
+- `app-debug.apk` — installable directly ("Install unknown apps").
+- `app-release.apk` — APK signed with the release key.
+- `app-release.aab` — signed Android App Bundle for the Play Store.
+
+### Signing secrets (owner-only, stored once)
+
+| Secret | Value |
+|---|---|
+| `ANDROID_SIGNING_KEYSTORE_BASE64` | base64 of `fhws-release.jks` |
+| `ANDROID_SIGNING_KEY_ALIAS` | `fhws` |
+| `ANDROID_SIGNING_STORE_PASSWORD` | store password |
+| `ANDROID_SIGNING_KEY_PASSWORD` | key password |
+
+The keystore itself (PKCS12), passwords and the base64 are backed up in
+`~/Desktop/FHWSTransport-signing/` (mode 600). **Keep that folder safe** — an
+app's signing key cannot be recovered or rotated once a Play release is live,
+and the folder's `signing-credentials.txt` is the only offline copy.
+
+Building a signed release locally: decode the base64 file
+(`echo "$B64" | base64 -d > android/keystore-release.jks`), then set the four
+`ANDROID_SIGNING_*` env vars and run
+`./gradlew :app:assembleRelease :app:bundleRelease` from `android/`. Without
+these vars the debug build still works and release builds are unsigned.
+
+To publish on Google Play you'll additionally upload the AAB in Play Console
+and let Play App Signing manage the upload key.
+
 ## Signing in
 
 Use the demo accounts:

@@ -1,8 +1,15 @@
+import java.util.Base64
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
 }
+
+val signingKeystoreBase64: String? = System.getenv("ANDROID_SIGNING_KEYSTORE_BASE64")
+val signingKeyAlias = System.getenv("ANDROID_SIGNING_KEY_ALIAS") ?: "fhws"
+val signingStorePassword = System.getenv("ANDROID_SIGNING_STORE_PASSWORD")
+val signingKeyPassword = System.getenv("ANDROID_SIGNING_KEY_PASSWORD")
 
 android {
     namespace = "com.fhws.transport"
@@ -16,8 +23,23 @@ android {
         versionName = "1.0.0"
     }
 
+    signingConfigs {
+        if (signingKeystoreBase64 != null && signingStorePassword != null && signingKeyPassword != null) {
+            create("release") {
+                storeFile = rootProject.file("keystore-release.jks").apply {
+                    parentFile.mkdirs()
+                    writeBytes(Base64.getDecoder().decode(signingKeystoreBase64))
+                }
+                storePassword = signingStorePassword
+                keyAlias = signingKeyAlias
+                keyPassword = signingKeyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
+            signingConfig = signingConfigs.findByName("release")
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }

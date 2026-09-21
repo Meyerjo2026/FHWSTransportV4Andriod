@@ -11,6 +11,11 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      ANDROID_SIGNING_KEYSTORE_BASE64: ${{ secrets.ANDROID_SIGNING_KEYSTORE_BASE64 }}
+      ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
+      ANDROID_SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
+      ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -28,12 +33,15 @@ jobs:
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
             "platforms;android-35" "build-tools;35.0.0" > /dev/null
 
-      - name: Build debug APK
-        run: chmod +x android/gradlew && cd android && ./gradlew :app:assembleDebug --stacktrace --no-daemon
+      - name: Build debug + signed release APK + AAB
+        run: chmod +x android/gradlew && cd android && ./gradlew :app:assembleDebug :app:assembleRelease :app:bundleRelease --stacktrace --no-daemon
 
-      - name: Upload APK artifact
+      - name: Upload APK/AAB artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: fhws-transport-apk
-          path: android/app/build/outputs/apk/debug/*.apk
+          name: fhws-transport-builds
+          path: |
+            android/app/build/outputs/apk/debug/*.apk
+            android/app/build/outputs/apk/release/*.apk
+            android/app/build/outputs/bundle/release/*.aab
           if-no-files-found: error
